@@ -1,9 +1,10 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
 const config = require('./config/config');
 const { httpLogger, logger } = require('./utils/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { ipWhitelist, corsConfig } = require('./middleware/securityMiddleware');
+const cleanupCron = require('./cron/cleanupCron');
 
 // Import routes
 const pdfRoutes = require('./routes/pdfRoutes');
@@ -14,7 +15,8 @@ const app = express();
 
 // Apply middleware
 app.use(httpLogger);
-app.use(cors());
+app.use(corsConfig()); // Custom CORS configuration
+app.use(ipWhitelist); // IP whitelisting
 app.use(express.json({ limit: '50mb' }));
 
 // Serve static files from public directory
@@ -31,6 +33,10 @@ app.use(errorHandler);
 // Start server
 const server = app.listen(config.server.port, () => {
   logger.info(`PDF Service is running on port ${config.server.port} in ${config.server.env} mode`);
+  
+  // Start PDF cleanup cron job (runs daily at midnight, deletes PDFs older than 7 days)
+  cleanupCron.startCleanupJob('0 0 * * *', 7);
+  logger.info('PDF cleanup cron job initialized');
 });
 
 // Handle graceful shutdown

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  pdf-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdf-creator
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3001}
+      - PDF_ASSESSMENT_DIR=${PDF_ASSESSMENT_DIR:-public/assessments}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - BASE_URL=${BASE_URL:-http://localhost:3001}
+      # Security Configuration
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+      - ALLOWED_IPS=${ALLOWED_IPS:-}
+    volumes:
+      - pdf-storage:/usr/src/app/public/assessments
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  pdf-storage:
+    driver: local

@@ -1,6 +1,6 @@
-const pdfService = require('../services/pdfService');
-const { logger } = require('../utils/logger');
-const fs = require('fs');
+const pdfService = require("../services/pdfService");
+const { logger } = require("../utils/logger");
+const fs = require("fs");
 
 /**
  * Controller for PDF generation operations
@@ -18,25 +18,25 @@ class PdfController {
 
       // Validate required fields
       if (!html) {
-        return res.status(400).json({ 
-          status: false, 
-          error: "HTML content is required" 
+        return res.status(400).json({
+          status: false,
+          error: "HTML content is required",
         });
       }
 
       // Check if html is a string or an object
-      if (typeof html === 'object') {
+      if (typeof html === "object") {
         // If html is an object, validate it has at least a body property
         if (!html.body) {
           return res.status(400).json({
             status: false,
-            error: "HTML body content is required when using object format"
+            error: "HTML body content is required when using object format",
           });
         }
       }
 
-      logger.info('Received PDF generation request');
-      
+      logger.info("Received PDF generation request");
+
       // Generate PDF with timestamp instead of clientId
       const pdfPath = await pdfService.createPdf(html);
 
@@ -53,6 +53,47 @@ class PdfController {
   }
 
   /**
+   * Delete a PDF file by filename
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   * @param {Function} next - Express next middleware function
+   */
+  async deletePdf(req, res, next) {
+    try {
+      const { filename } = req.params;
+
+      // Validate required fields
+      if (!filename) {
+        return res.status(400).json({
+          status: false,
+          error: "Filename is required",
+        });
+      }
+
+      logger.info(`Received PDF deletion request for file: ${filename}`);
+
+      // Delete the PDF file
+      const result = await pdfService.deletePdf(filename);
+
+      if (!result.success) {
+        return res.status(404).json({
+          status: false,
+          message: result.message,
+        });
+      }
+
+      // Return success response
+      res.status(200).json({
+        status: true,
+        message: "PDF deleted successfully",
+      });
+    } catch (error) {
+      logger.error("Error in PDF deletion controller:", error);
+      next(error);
+    }
+  }
+
+  /**
    * Health check endpoint handler
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
@@ -60,34 +101,35 @@ class PdfController {
   async healthCheck(req, res) {
     try {
       // Simple HTML content for testing PDF generation
-      const testHtml = '<html><body><h1>Health Check PDF Test</h1><p>This is a test PDF generated during health check.</p></body></html>';
-      
+      const testHtml =
+        "<html><body><h1>Health Check PDF Test</h1><p>This is a test PDF generated during health check.</p></body></html>";
+
       // Generate a test PDF
       const pdfPath = await pdfService.createPdf(testHtml);
-      
+
       // Check if the generated file exists
       const fileExists = fs.existsSync(pdfPath);
-      
-      res.status(200).json({ 
+
+      res.status(200).json({
         status: "ok",
         service: "pdf-service",
         timestamp: new Date().toISOString(),
         pdfTest: {
           generated: true,
           path: pdfPath,
-          exists: fileExists
-        }
+          exists: fileExists,
+        },
       });
     } catch (error) {
-      logger.error('Error in health check:', error);
+      logger.error("Error in health check:", error);
       res.status(500).json({
         status: "error",
         service: "pdf-service",
         timestamp: new Date().toISOString(),
         error: error.message,
         pdfTest: {
-          generated: false
-        }
+          generated: false,
+        },
       });
     }
   }

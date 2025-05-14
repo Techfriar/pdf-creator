@@ -37,10 +37,17 @@ class PdfService {
     try {
       logger.info('Starting PDF generation');
 
-      // Launch browser
+      // Launch browser with additional arguments for Docker environment
       const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--disable-software-rasterizer"
+        ],
       });
 
       const page = await browser.newPage();
@@ -118,6 +125,54 @@ class PdfService {
     } catch (error) {
       logger.error("PDF generation error:", error);
       throw new Error("PDF generation failed.");
+    }
+  }
+
+  /**
+   * Delete a PDF file by filename
+   * @param {string} filename - Name of the PDF file to delete
+   * @returns {Promise<Object>} - Result of the deletion operation
+   */
+  async deletePdf(filename) {
+    try {
+      logger.info(`Attempting to delete PDF: ${filename}`);
+      
+      // Validate filename to prevent directory traversal attacks
+      if (!filename || filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+        logger.warn(`Invalid filename provided for deletion: ${filename}`);
+        return {
+          success: false,
+          message: "Invalid filename provided"
+        };
+      }
+
+      // Get the full path to the PDF file
+      const publicDir = path.resolve(__dirname, "../../", this.assessmentDir);
+      const pdfPath = path.join(publicDir, filename);
+      
+      // Check if the file exists
+      if (!fs.existsSync(pdfPath)) {
+        logger.warn(`PDF file not found: ${pdfPath}`);
+        return {
+          success: false,
+          message: "PDF file not found"
+        };
+      }
+
+      // Delete the file
+      fs.unlinkSync(pdfPath);
+      logger.info(`PDF deleted successfully: ${pdfPath}`);
+      
+      return {
+        success: true,
+        message: "PDF deleted successfully"
+      };
+    } catch (error) {
+      logger.error("PDF deletion error:", error);
+      return {
+        success: false,
+        message: error.message || "PDF deletion failed"
+      };
     }
   }
 }

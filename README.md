@@ -32,6 +32,8 @@ pdf-service/
 
 ## Setup
 
+### Local Setup
+
 1. Install dependencies:
 
 ```bash
@@ -51,6 +53,34 @@ PDF_ASSESSMENT_DIR=public/assessments
 
 # Logging Configuration
 LOG_LEVEL=debug
+```
+
+### Docker Setup
+
+The application can be run in a Docker container:
+
+1. Build and start the container using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+2. To stop the container:
+
+```bash
+docker-compose down
+```
+
+3. To rebuild the container after making changes:
+
+```bash
+docker-compose up -d --build
+```
+
+4. To view logs:
+
+```bash
+docker-compose logs -f
 ```
 
 ## Running the Service
@@ -112,6 +142,27 @@ npm run lint
   }
   ```
 
+### Delete PDF
+
+- **URL**: `/api/pdf/delete/:filename`
+- **Method**: `DELETE`
+- **URL Parameters**:
+  - `filename`: Name of the PDF file to delete (e.g., `Assessment_2025-05-14T06-22-38-226Z.pdf`)
+- **Response (Success)**:
+  ```json
+  {
+    "status": true,
+    "message": "PDF deleted successfully"
+  }
+  ```
+- **Response (File Not Found)**:
+  ```json
+  {
+    "status": false,
+    "message": "PDF file not found"
+  }
+  ```
+
 ### Health Check
 
 - **URL**: `/api/health`
@@ -132,13 +183,43 @@ npm run lint
   
   Note: The health check endpoint now tests PDF generation functionality and verifies that the generated file exists.
 
+## Automatic PDF Cleanup
+
+The service includes an automatic cleanup feature that deletes PDF files older than 7 days. This helps manage disk space and ensures that temporary files don't accumulate indefinitely.
+
+- The cleanup job runs daily at midnight
+- Only PDF files older than 7 days are deleted
+- File age is determined by the file's modification timestamp
+- Deletion activities are logged for auditing purposes
+
+The cleanup configuration can be modified in `src/index.js` by changing the cron schedule and retention period parameters.
+
+## Security Features
+
+The PDF service includes focused security features for backend-to-backend communication:
+
+### Origin Restriction
+
+The service can be configured to only accept requests from specific origins:
+
+- Set the `ALLOWED_ORIGINS` environment variable to a comma-separated list of allowed origins
+- If no origins are specified, all origins are allowed
+- This is particularly useful for backend-to-backend communication
+
+### IP Whitelisting
+
+For additional security, you can restrict access to specific IP addresses:
+
+- Set the `ALLOWED_IPS` environment variable to a comma-separated list of allowed IP addresses
+- If no IPs are specified, all IPs are allowed
+
 ## Integration with Main Application
 
 To use this service from your main application, you'll need to:
 
-1. Make HTTP requests to the PDF service endpoint
-2. Handle the response which contains the path to the generated PDF
-3. Update your main application's code to use this service
+1. Configure the security settings in both applications
+2. Make authenticated HTTP requests to the PDF service endpoint
+3. Handle the response which contains the path to the generated PDF
 
 Example integration code:
 
@@ -147,9 +228,14 @@ const axios = require("axios");
 
 async function generatePdf(htmlContent) {
   try {
-    const response = await axios.post("http://localhost:3001/api/pdf/generate", {
-      html: htmlContent
-    });
+    const response = await axios.post("http://your-pdf-service-url/api/pdf/generate", 
+      { html: htmlContent },
+      { 
+        headers: { 
+          'Content-Type': 'application/json'
+        } 
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error generating PDF:", error);
