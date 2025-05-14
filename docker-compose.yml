@@ -9,13 +9,13 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=production
-      - PORT=3001
-      - PDF_ASSESSMENT_DIR=public/assessments
-      - LOG_LEVEL=info
-      - BASE_URL=http://localhost:3001
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-3001}
+      - PDF_ASSESSMENT_DIR=${PDF_ASSESSMENT_DIR:-public/assessments}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - BASE_URL=${BASE_URL:-http://localhost:3001}
       # Security Configuration
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://your-main-app.com}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
       - ALLOWED_IPS=${ALLOWED_IPS:-}
     volumes:
       - pdf-storage:/usr/src/app/public/assessments
