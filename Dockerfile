@@ -58,8 +58,10 @@ RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Expose the port the app runs on
-EXPOSE 3001
+# Expose the port dynamically via build ARG or environment
+ARG PORT=3001
+ENV PORT=${PORT}
+EXPOSE ${PORT}
 
 # Command to run the application
 CMD ["npm", "start"]
