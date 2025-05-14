@@ -14,9 +14,18 @@ services:
       - PDF_ASSESSMENT_DIR=public/assessments
       - LOG_LEVEL=info
       - BASE_URL=http://localhost:3001
+      # Security Configuration
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://your-main-app.com}
+      - ALLOWED_IPS=${ALLOWED_IPS:-}
     volumes:
       - pdf-storage:/usr/src/app/public/assessments
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   pdf-storage:

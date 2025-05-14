@@ -194,13 +194,32 @@ The service includes an automatic cleanup feature that deletes PDF files older t
 
 The cleanup configuration can be modified in `src/index.js` by changing the cron schedule and retention period parameters.
 
+## Security Features
+
+The PDF service includes focused security features for backend-to-backend communication:
+
+### Origin Restriction
+
+The service can be configured to only accept requests from specific origins:
+
+- Set the `ALLOWED_ORIGINS` environment variable to a comma-separated list of allowed origins
+- If no origins are specified, all origins are allowed
+- This is particularly useful for backend-to-backend communication
+
+### IP Whitelisting
+
+For additional security, you can restrict access to specific IP addresses:
+
+- Set the `ALLOWED_IPS` environment variable to a comma-separated list of allowed IP addresses
+- If no IPs are specified, all IPs are allowed
+
 ## Integration with Main Application
 
 To use this service from your main application, you'll need to:
 
-1. Make HTTP requests to the PDF service endpoint
-2. Handle the response which contains the path to the generated PDF
-3. Update your main application's code to use this service
+1. Configure the security settings in both applications
+2. Make authenticated HTTP requests to the PDF service endpoint
+3. Handle the response which contains the path to the generated PDF
 
 Example integration code:
 
@@ -209,9 +228,14 @@ const axios = require("axios");
 
 async function generatePdf(htmlContent) {
   try {
-    const response = await axios.post("http://localhost:3001/api/pdf/generate", {
-      html: htmlContent
-    });
+    const response = await axios.post("http://your-pdf-service-url/api/pdf/generate", 
+      { html: htmlContent },
+      { 
+        headers: { 
+          'Content-Type': 'application/json'
+        } 
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error generating PDF:", error);

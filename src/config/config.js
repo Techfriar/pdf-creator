@@ -11,5 +11,11 @@ module.exports = {
   },
   logging: {
     level: process.env.LOG_LEVEL || 'info',
+  },
+  security: {
+    // Allowed origins for backend calls (comma-separated list in env)
+    allowedOrigins: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [],
+    // Allowed IP addresses (comma-separated list in env)
+    allowedIPs: process.env.ALLOWED_IPS ? process.env.ALLOWED_IPS.split(',') : []
   }
 };

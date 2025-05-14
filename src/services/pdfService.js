@@ -37,10 +37,17 @@ class PdfService {
     try {
       logger.info('Starting PDF generation');
 
-      // Launch browser
+      // Launch browser with additional arguments for Docker environment
       const browser = await puppeteer.launch({
         headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || null,
+        args: [
+          "--no-sandbox",
+          "--disable-setuid-sandbox",
+          "--disable-dev-shm-usage",
+          "--disable-gpu",
+          "--disable-software-rasterizer"
+        ],
       });
 
       const page = await browser.newPage();
