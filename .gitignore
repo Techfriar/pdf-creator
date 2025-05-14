@@ -1,0 +1,42 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+node_modules/
+/out
+/dist
+/build
+
+#logs
+logs*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Diagnostic reports (https://nodejs.org/api/report.html)
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# misc
+.DS_Store
+*.swp
+*.swo
+*.env
+.vscode/
+
+# Don't include certificates
+private/
+keys/
+certs/
+passwords.txt
+
+# PDF files
+*.pdf
+public/assessments/*
+public/pdfs/*
