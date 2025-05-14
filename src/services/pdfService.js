@@ -6,15 +6,13 @@ const { logger } = require("../utils/logger");
 
 class PdfService {
   constructor() {
-    this.outputDir = path.resolve(__dirname, "../../", config.pdf.outputDir);
     this.assessmentDir = path.resolve(
       __dirname,
       "../../",
       config.pdf.assessmentDir
     );
 
-    // Ensure directories exist
-    this._ensureDirectoryExists(this.outputDir);
+    // Ensure directory exists
     this._ensureDirectoryExists(this.assessmentDir);
   }
 
@@ -33,12 +31,11 @@ class PdfService {
   /**
    * Create a PDF document from HTML content
    * @param {string|Object} htmlContent - HTML content to convert to PDF. Can be a string or an object with header, body, and footer properties
-   * @param {string} clientId - Client identifier for the PDF
    * @returns {Promise<string>} - Path to the generated PDF file
    */
-  async createPdf(htmlContent, clientId) {
+  async createPdf(htmlContent) {
     try {
-      logger.info(`Starting PDF generation for client: ${clientId}`);
+      logger.info('Starting PDF generation');
 
       // Launch browser
       const browser = await puppeteer.launch({
@@ -85,8 +82,14 @@ class PdfService {
       const publicDir = path.resolve(__dirname, "../../", this.assessmentDir);
       this._ensureDirectoryExists(publicDir);
 
-      // Set PDF file path
-      const pdfPath = path.join(publicDir, `Assessment_${clientId}.pdf`);
+      // Generate timestamp for the file name
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      
+      // Generate filename
+      const filename = `Assessment_${timestamp}.pdf`;
+      
+      // Set PDF file path with timestamp instead of clientId
+      const pdfPath = path.join(publicDir, filename);
       logger.debug(`PDF will be saved to: ${pdfPath}`);
 
       // Generate PDF
@@ -103,8 +106,15 @@ class PdfService {
       await browser.close();
       logger.info(`PDF generated successfully: ${pdfPath}`);
 
-      // Return PDF path
-      return pdfPath;
+      // Return URL path instead of file system path
+      // Extract the path after 'public/' if it exists in the assessmentDir
+      const pathWithoutPublic = config.pdf.assessmentDir.replace(/^public\//, '');
+      const relativePath = `/public/${pathWithoutPublic}/${filename}`;
+      
+      // Construct full URL with base URL from config
+      const fullUrl = new URL(relativePath, config.server.baseUrl).toString();
+      logger.info(`PDF URL path: ${fullUrl}`);
+      return fullUrl;
     } catch (error) {
       logger.error("PDF generation error:", error);
       throw new Error("PDF generation failed.");

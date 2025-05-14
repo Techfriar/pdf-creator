@@ -82,8 +82,7 @@ npm run lint
 - **Body**:
   ```json
   {
-    "html": "<html>...</html>",
-    "clientId": "unique-client-id"
+    "html": "<html>...</html>"
   }
   ```
   
@@ -94,8 +93,7 @@ npm run lint
       "header": "<div style='text-align: center;'>My Header</div>",
       "body": "<div>Main content goes here</div>",
       "footer": "<div style='text-align: center;'>Page <span class='pageNumber'></span> of <span class='totalPages'></span></div>"
-    },
-    "clientId": "unique-client-id"
+    }
   }
   ```
   
@@ -104,6 +102,7 @@ npm run lint
   - `header` and `footer` are optional
   - When a custom header is provided, a top margin of 50px is automatically added
   - You can use Puppeteer's special classes like `pageNumber` and `totalPages` in your footer
+  - PDF files are automatically named with timestamps (e.g., `Assessment_2025-05-14T06-22-38-226Z.pdf`)
 - **Response**:
   ```json
   {
@@ -122,9 +121,16 @@ npm run lint
   {
     "status": "ok",
     "service": "pdf-service",
-    "timestamp": "2023-05-13T06:27:28.000Z"
+    "timestamp": "2025-05-14T06:22:38.226Z",
+    "pdfTest": {
+      "generated": true,
+      "path": "/path/to/generated/pdf",
+      "exists": true
+    }
   }
   ```
+  
+  Note: The health check endpoint now tests PDF generation functionality and verifies that the generated file exists.
 
 ## Integration with Main Application
 
@@ -139,11 +145,10 @@ Example integration code:
 ```javascript
 const axios = require("axios");
 
-async function generatePdf(htmlContent, clientId) {
+async function generatePdf(htmlContent) {
   try {
     const response = await axios.post("http://localhost:3001/api/pdf/generate", {
-      htmlContent,
-      clientId,
+      html: htmlContent
     });
     return response.data;
   } catch (error) {
