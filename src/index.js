@@ -4,6 +4,7 @@ const cors = require('cors');
 const config = require('./config/config');
 const { httpLogger, logger } = require('./utils/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const cleanupCron = require('./cron/cleanupCron');
 
 // Import routes
 const pdfRoutes = require('./routes/pdfRoutes');
@@ -31,6 +32,10 @@ app.use(errorHandler);
 // Start server
 const server = app.listen(config.server.port, () => {
   logger.info(`PDF Service is running on port ${config.server.port} in ${config.server.env} mode`);
+  
+  // Start PDF cleanup cron job (runs daily at midnight, deletes PDFs older than 7 days)
+  cleanupCron.startCleanupJob('0 0 * * *', 7);
+  logger.info('PDF cleanup cron job initialized');
 });
 
 // Handle graceful shutdown
