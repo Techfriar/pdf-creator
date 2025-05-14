@@ -6,7 +6,6 @@ module.exports = {
     env: process.env.NODE_ENV || 'development',
   },
   pdf: {
-    outputDir: process.env.PDF_OUTPUT_DIR || 'public/pdfs',
     assessmentDir: process.env.PDF_ASSESSMENT_DIR || 'public/assessments',
   },
   logging: {

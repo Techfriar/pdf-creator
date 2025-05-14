@@ -1,5 +1,6 @@
 const pdfService = require('../services/pdfService');
 const { logger } = require('../utils/logger');
+const fs = require('fs');
 
 /**
  * Controller for PDF generation operations
@@ -13,7 +14,7 @@ class PdfController {
    */
   async generatePdf(req, res, next) {
     try {
-      const { html, clientId } = req.body;
+      const { html } = req.body;
 
       // Validate required fields
       if (!html) {
@@ -34,17 +35,10 @@ class PdfController {
         }
       }
 
-      if (!clientId) {
-        return res.status(400).json({ 
-          status: false, 
-          error: "Client ID is required" 
-        });
-      }
-
-      logger.info(`Received PDF generation request for client: ${clientId}`);
+      logger.info('Received PDF generation request');
       
-      // Generate PDF
-      const pdfPath = await pdfService.createPdf(html, clientId);
+      // Generate PDF with timestamp instead of clientId
+      const pdfPath = await pdfService.createPdf(html);
 
       // Return success response
       res.status(200).json({
@@ -63,12 +57,39 @@ class PdfController {
    * @param {Object} req - Express request object
    * @param {Object} res - Express response object
    */
-  healthCheck(req, res) {
-    res.status(200).json({ 
-      status: "ok",
-      service: "pdf-service",
-      timestamp: new Date().toISOString()
-    });
+  async healthCheck(req, res) {
+    try {
+      // Simple HTML content for testing PDF generation
+      const testHtml = '<html><body><h1>Health Check PDF Test</h1><p>This is a test PDF generated during health check.</p></body></html>';
+      
+      // Generate a test PDF
+      const pdfPath = await pdfService.createPdf(testHtml);
+      
+      // Check if the generated file exists
+      const fileExists = fs.existsSync(pdfPath);
+      
+      res.status(200).json({ 
+        status: "ok",
+        service: "pdf-service",
+        timestamp: new Date().toISOString(),
+        pdfTest: {
+          generated: true,
+          path: pdfPath,
+          exists: fileExists
+        }
+      });
+    } catch (error) {
+      logger.error('Error in health check:', error);
+      res.status(500).json({
+        status: "error",
+        service: "pdf-service",
+        timestamp: new Date().toISOString(),
+        error: error.message,
+        pdfTest: {
+          generated: false
+        }
+      });
+    }
   }
 }
 
