@@ -17,6 +17,9 @@ app.use(httpLogger);
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Serve static files from public directory
+app.use('/public', express.static('public'));
+
 // API Routes
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/health', healthRoutes);

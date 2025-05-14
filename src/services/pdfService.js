@@ -85,8 +85,11 @@ class PdfService {
       // Generate timestamp for the file name
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
       
+      // Generate filename
+      const filename = `Assessment_${timestamp}.pdf`;
+      
       // Set PDF file path with timestamp instead of clientId
-      const pdfPath = path.join(publicDir, `Assessment_${timestamp}.pdf`);
+      const pdfPath = path.join(publicDir, filename);
       logger.debug(`PDF will be saved to: ${pdfPath}`);
 
       // Generate PDF
@@ -103,8 +106,15 @@ class PdfService {
       await browser.close();
       logger.info(`PDF generated successfully: ${pdfPath}`);
 
-      // Return PDF path
-      return pdfPath;
+      // Return URL path instead of file system path
+      // Extract the path after 'public/' if it exists in the assessmentDir
+      const pathWithoutPublic = config.pdf.assessmentDir.replace(/^public\//, '');
+      const relativePath = `/public/${pathWithoutPublic}/${filename}`;
+      
+      // Construct full URL with base URL from config
+      const fullUrl = new URL(relativePath, config.server.baseUrl).toString();
+      logger.info(`PDF URL path: ${fullUrl}`);
+      return fullUrl;
     } catch (error) {
       logger.error("PDF generation error:", error);
       throw new Error("PDF generation failed.");
