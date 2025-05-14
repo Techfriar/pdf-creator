@@ -32,6 +32,8 @@ pdf-service/
 
 ## Setup
 
+### Local Setup
+
 1. Install dependencies:
 
 ```bash
@@ -51,6 +53,34 @@ PDF_ASSESSMENT_DIR=public/assessments
 
 # Logging Configuration
 LOG_LEVEL=debug
+```
+
+### Docker Setup
+
+The application can be run in a Docker container:
+
+1. Build and start the container using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+2. To stop the container:
+
+```bash
+docker-compose down
+```
+
+3. To rebuild the container after making changes:
+
+```bash
+docker-compose up -d --build
+```
+
+4. To view logs:
+
+```bash
+docker-compose logs -f
 ```
 
 ## Running the Service
@@ -112,6 +142,27 @@ npm run lint
   }
   ```
 
+### Delete PDF
+
+- **URL**: `/api/pdf/delete/:filename`
+- **Method**: `DELETE`
+- **URL Parameters**:
+  - `filename`: Name of the PDF file to delete (e.g., `Assessment_2025-05-14T06-22-38-226Z.pdf`)
+- **Response (Success)**:
+  ```json
+  {
+    "status": true,
+    "message": "PDF deleted successfully"
+  }
+  ```
+- **Response (File Not Found)**:
+  ```json
+  {
+    "status": false,
+    "message": "PDF file not found"
+  }
+  ```
+
 ### Health Check
 
 - **URL**: `/api/health`
@@ -131,6 +182,17 @@ npm run lint
   ```
   
   Note: The health check endpoint now tests PDF generation functionality and verifies that the generated file exists.
+
+## Automatic PDF Cleanup
+
+The service includes an automatic cleanup feature that deletes PDF files older than 7 days. This helps manage disk space and ensures that temporary files don't accumulate indefinitely.
+
+- The cleanup job runs daily at midnight
+- Only PDF files older than 7 days are deleted
+- File age is determined by the file's modification timestamp
+- Deletion activities are logged for auditing purposes
+
+The cleanup configuration can be modified in `src/index.js` by changing the cron schedule and retention period parameters.
 
 ## Integration with Main Application
 

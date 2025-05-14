@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  pdf-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdf-creator
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - PDF_ASSESSMENT_DIR=public/assessments
+      - LOG_LEVEL=info
+      - BASE_URL=http://localhost:3001
+    volumes:
+      - pdf-storage:/usr/src/app/public/assessments
+    restart: unless-stopped
+
+volumes:
+  pdf-storage:
+    driver: local
