@@ -109,6 +109,7 @@ class PdfController {
 
       // Check if the generated file exists
       const fileExists = fs.existsSync(pdfPath);
+      console.log("file exists "+fileExists)
 
       res.status(200).json({
         status: "ok",
